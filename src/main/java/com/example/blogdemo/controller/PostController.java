@@ -1,83 +1,62 @@
 package com.example.blogdemo.controller;
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.example.blogdemo.common.ApiResponse;
-import com.example.blogdemo.entity.Post;
+import com.example.blogdemo.dto.PostResponse;
+import com.example.blogdemo.service.PostService;
+import com.example.blogdemo.service.PostService.PostRequest;
+import com.example.blogdemo.service.PostService.PostUpdateRequest;
 
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
 
-    private final PostRepository postRepository;
+    private final PostService postService;
 
-    public PostController(PostRepository postRepository) {
-        this.postRepository = postRepository;
+    public PostController(PostService postService) {
+        this.postService = postService;
     }
 
     @GetMapping
-    public ApiResponse<List<Post>> listPosts() {
-        return ApiResponse.success(postRepository.findAll());
+    public ApiResponse<Page<PostResponse>> listPosts(
+            @RequestParam(required = false) Long boardId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(postService.listPosts(boardId, page, size));
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<Post> getPost(@PathVariable Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found: " + id));
-        return ApiResponse.success(post);
+    public ApiResponse<PostResponse> getPost(@PathVariable Long id) {
+        return ApiResponse.success(postService.getPost(id));
     }
 
     @PostMapping
-    public ApiResponse<Post> createPost(@RequestBody CreatePostRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("request body is required");
-        }
-        if (request.getTitle() == null || request.getTitle().isBlank()) {
-            throw new IllegalArgumentException("title is required");
-        }
-        if (request.getContent() == null || request.getContent().isBlank()) {
-            throw new IllegalArgumentException("content is required");
-        }
-
-        Post post = new Post();
-        post.setTitle(request.getTitle().trim());
-        post.setContent(request.getContent().trim());
-        post.setAuthor("anonymous");
-
-        return ApiResponse.success(postRepository.save(post));
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<PostResponse> createPost(@RequestBody PostRequest request) {
+        return ApiResponse.success(postService.createPost(request));
     }
 
-    public static class CreatePostRequest {
-        private String title;
-        private String content;
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @RequestBody PostUpdateRequest request) {
+        return ApiResponse.success(postService.updatePost(id, request));
     }
-}
 
-interface PostRepository extends JpaRepository<Post, Long> {
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<Void> deletePost(@PathVariable Long id) {
+        postService.deletePost(id);
+        return ApiResponse.success(null);
+    }
 }

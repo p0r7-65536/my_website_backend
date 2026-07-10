@@ -7,7 +7,7 @@ server:
 
 spring:
   application:
-    name: blog-demo
+    name: forum-demo
   jackson:
     time-zone: Asia/Shanghai
   datasource:
@@ -29,3 +29,8 @@ management:
     web:
       exposure:
         include: "*"
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000
