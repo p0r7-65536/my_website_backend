@@ -1,5 +1,6 @@
 package com.example.blogdemo.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,13 @@ public class DataInitializer {
     CommandLineRunner initForumData(
             UserRepository userRepository,
             BoardRepository boardRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            @Value("${app.seed-data:false}") boolean seedData) {
         return args -> {
+            if (!seedData) {
+                return;
+            }
+
             if (!userRepository.existsByUsername("admin")) {
                 User admin = new User();
                 admin.setUsername("admin");

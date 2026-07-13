@@ -35,6 +35,9 @@ public class PostService {
         int safePage = Math.max(page, 0);
         int safeSize = Math.max(1, Math.min(size, 100));
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        if (boardId != null && !boardRepository.existsById(boardId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Board not found: " + boardId);
+        }
         Page<Post> posts = boardId == null
                 ? postRepository.findAll(pageable)
                 : postRepository.findByBoardId(boardId, pageable);
