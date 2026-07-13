@@ -11,7 +11,7 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
-ENV JAVA_OPTS="-Xms80m -Xmx180m -XX:+UseG1GC"
+ENV JAVA_OPTS="-Xms80m -Xmx256m -XX:+UseG1GC"
 
 COPY --from=builder /app/target/blog-demo-0.0.1-SNAPSHOT.jar app.jar
 

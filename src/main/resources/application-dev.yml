@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/blog
+    username: blog_app
+    password: blog_password
+
+app:
+  seed-data: true
+  jwt:
+    secret: dev-jwt-secret-key-must-be-at-least-32-chars-long

@@ -10,4 +10,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     List<Board> findAllByOrderBySortOrderAscIdAsc();
 
     boolean existsByName(String name);
+
+    boolean existsByNameAndIdNot(String name, Long id);
 }

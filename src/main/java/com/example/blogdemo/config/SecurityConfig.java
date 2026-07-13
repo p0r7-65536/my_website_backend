@@ -54,12 +54,11 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/health",
-                                "/api/boards",
-                                "/api/posts",
-                                "/api/posts/*",
-                                "/api/posts/*/replies",
-                                "/actuator/**",
                                 "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/boards", "/api/boards/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/*/replies").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->

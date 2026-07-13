@@ -45,6 +45,9 @@ public class AuthService {
         if (userRepository.existsByUsername(request.username().trim())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "username already exists");
         }
+        if (userRepository.existsByEmail(request.email().trim())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "email already exists");
+        }
 
         User user = new User();
         user.setUsername(request.username().trim());
@@ -60,15 +63,16 @@ public class AuthService {
         }
         requireText(request.username(), "username is required");
         requireText(request.password(), "password is required");
+        String username = request.username().trim();
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    request.username(),
+                    username,
                     request.password()));
         } catch (BadCredentialsException exception) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password");
         }
 
-        User user = userRepository.findByUsername(request.username())
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid username or password"));
         String token = jwtService.generateToken(new ForumUserDetails(user));
         return new LoginResponse(token, UserResponse.from(user));

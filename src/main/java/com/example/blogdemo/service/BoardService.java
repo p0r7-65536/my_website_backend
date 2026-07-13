@@ -9,14 +9,17 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.blogdemo.dto.BoardResponse;
 import com.example.blogdemo.entity.Board;
 import com.example.blogdemo.repository.BoardRepository;
+import com.example.blogdemo.repository.PostRepository;
 
 @Service
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final PostRepository postRepository;
 
-    public BoardService(BoardRepository boardRepository) {
+    public BoardService(BoardRepository boardRepository, PostRepository postRepository) {
         this.boardRepository = boardRepository;
+        this.postRepository = postRepository;
     }
 
     public List<BoardResponse> listBoards() {
@@ -45,12 +48,20 @@ public class BoardService {
         }
         Board board = findBoard(id);
         requireText(request.name(), "name is required");
+        String trimmedName = request.name().trim();
+        if (boardRepository.existsByNameAndIdNot(trimmedName, id)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "board name already exists");
+        }
         apply(board, request);
         return BoardResponse.from(boardRepository.save(board));
     }
 
     public void deleteBoard(Long id) {
         Board board = findBoard(id);
+        if (postRepository.countByBoardId(id) > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Cannot delete board with existing posts");
+        }
         boardRepository.delete(board);
     }
 

@@ -8,4 +8,6 @@ import com.example.blogdemo.entity.Post;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByBoardId(Long boardId, Pageable pageable);
+
+    long countByBoardId(Long boardId);
 }
