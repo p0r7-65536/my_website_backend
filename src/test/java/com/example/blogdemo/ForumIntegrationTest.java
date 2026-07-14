@@ -199,6 +199,57 @@ class ForumIntegrationTest {
                 .andExpect(jsonPath("$.message").value("board name already exists"));
     }
 
+    @Test
+    void createPostReplyAndIncrementViewCount() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"alice","password":"password123","email":"alice@example.com"}
+                                """))
+                .andExpect(status().isOk());
+
+        String token = loginToken("alice", "password123");
+
+        Board board = new Board();
+        board.setName("General");
+        board.setDescription("General discussion");
+        board.setSortOrder(1);
+        board = boardRepository.save(board);
+
+        MvcResult postResult = mockMvc.perform(post("/api/posts")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"boardId":%d,"title":"First thread","content":"Hello forum"}
+                                """.formatted(board.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("First thread"))
+                .andExpect(jsonPath("$.data.viewCount").value(0))
+                .andReturn();
+
+        long postId = objectMapper.readTree(postResult.getResponse().getContentAsString())
+                .path("data")
+                .path("id")
+                .asLong();
+
+        mockMvc.perform(get("/api/posts/" + postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.viewCount").value(1));
+
+        mockMvc.perform(post("/api/posts/" + postId + "/replies")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"content":"Nice post!"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").value("Nice post!"));
+
+        mockMvc.perform(get("/api/posts/" + postId + "/replies"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].content").value("Nice post!"));
+    }
+
     private String adminToken() throws Exception {
         createAdmin();
         return loginToken("admin", "admin123");
