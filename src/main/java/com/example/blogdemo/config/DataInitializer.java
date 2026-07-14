@@ -20,7 +20,7 @@ public class DataInitializer {
             UserRepository userRepository,
             BoardRepository boardRepository,
             PasswordEncoder passwordEncoder,
-            @Value("${app.seed-data:false}") boolean seedData) {
+            @Value("${app.seed-data:true}") boolean seedData) {
         return args -> {
             if (!seedData) {
                 return;
@@ -35,9 +35,21 @@ public class DataInitializer {
                 userRepository.save(admin);
             }
 
-            createBoardIfMissing(boardRepository, "技术讨论", "交流编程、架构、运维和工程实践。", 10);
-            createBoardIfMissing(boardRepository, "资源分享", "分享工具、教程、资料和项目经验。", 20);
-            createBoardIfMissing(boardRepository, "闲聊灌水", "轻松交流日常话题。", 30);
+            createBoardIfMissing(
+                    boardRepository,
+                    "Technical Discussion",
+                    "Discuss programming, architecture, operations, and engineering practices.",
+                    10);
+            createBoardIfMissing(
+                    boardRepository,
+                    "Resource Sharing",
+                    "Share tools, tutorials, materials, and project experience.",
+                    20);
+            createBoardIfMissing(
+                    boardRepository,
+                    "Casual Chat",
+                    "Casual conversation and everyday topics.",
+                    30);
         };
     }
 
